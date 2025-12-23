@@ -207,15 +207,9 @@ local iconAsset = Library:GetIcon("home", "solar")  -- Specific pack
 Library:SetDefaultIconPack("solar")
 ```
 
-### Icon Resolution Order
-
-1. Check loaded icon pack from URL
-2. Fallback to default pack if different
-3. Fallback to built-in Icons table with "lucide-" prefix
-
 ## Themes
 
-Available themes:
+Themes:
 
 - Dark
 - Darker
