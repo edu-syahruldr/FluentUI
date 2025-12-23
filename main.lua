@@ -10,7 +10,7 @@ local httpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-print("Library Loaded V1.2A")
+print("Library Loaded V1.2AC")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -818,12 +818,17 @@ function Library:GetIcon(Name, PackName)
     -- Use default pack if not specified
     PackName = PackName or DefaultIconPack
     
+    -- Return nil if no name provided
+    if Name == nil or Name == "" then
+        return nil
+    end
+    
     -- Return as-is if already rbxassetid
     if type(Name) == "string" and Name:match("^rbxassetid://") then
         return Name
     end
     
-    -- Load icon pack
+    -- Try to load icon pack from URL
     local pack = LoadIconPack(PackName)
     if pack and pack[Name] then
         return pack[Name]
@@ -835,6 +840,16 @@ function Library:GetIcon(Name, PackName)
         if pack and pack[Name] then
             return pack[Name]
         end
+    end
+    
+    -- Fallback to old Icons table (with "lucide-" prefix)
+    if Icons and Icons["lucide-" .. Name] then
+        return Icons["lucide-" .. Name]
+    end
+    
+    -- Fallback to old Icons table (direct name)
+    if Icons and Icons[Name] then
+        return Icons[Name]
     end
     
     return nil
@@ -9753,12 +9768,7 @@ local Icons = {
     ["lucide-dumbbell"] = "rbxassetid://18273453053"
 }
 
-function Library:GetIcon(Name)
-    if Name ~= nil and Icons["lucide-" .. Name] then
-        return Icons["lucide-" .. Name]
-    end
-    return nil
-end
+-- Old GetIcon removed - using new GetIcon method defined earlier with LoadIconPack support
 
 local Elements = {}
 Elements.__index = Elements
