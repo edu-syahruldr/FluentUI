@@ -10,7 +10,7 @@ local httpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-print("Library Loaded V1.1D")
+print("Library Loaded V1.2A")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -754,69 +754,45 @@ local Themes = {
     }
 }
 
--- Icon Module with Lazy Loading
-local IconModule = {
-    DefaultPack = "lucide",
-    LoadedPacks = {},
-    
-    Packs = {
-        lucide = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua",
-        solar = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/solar/dist/Icons.lua",
-        craft = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua",
-        geist = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua",
-        sfsymbols = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/sfsymbols/dist/Icons.lua"
-    }
+-- Icon System with On-Demand Loading
+local IconPacks = {
+    lucide = nil,
+    solar = nil,
+    craft = nil,
+    geist = nil,
+    sfsymbols = nil
 }
 
-function IconModule:LoadPack(packName)
-    -- Return cached pack if already loaded
-    if self.LoadedPacks[packName] then
-        return self.LoadedPacks[packName]
+local IconURLs = {
+    lucide = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua",
+    solar = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/solar/dist/Icons.lua",
+    craft = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua",
+    geist = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua",
+    sfsymbols = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/sfsymbols/dist/Icons.lua"
+}
+
+local DefaultIconPack = "lucide"
+
+local function LoadIconPack(packName)
+    if IconPacks[packName] then
+        return IconPacks[packName]
     end
     
-    -- Load pack from URL
-    local url = self.Packs[packName]
+    local url = IconURLs[packName]
     if url then
-        local success, pack = pcall(function()
+        local success, result = pcall(function()
             return loadstring(game:HttpGet(url))()
         end)
         
-        if success and pack then
-            self.LoadedPacks[packName] = pack
-            return pack
+        if success and result then
+            IconPacks[packName] = result
+            return result
         else
-            warn("[IconModule] Failed to load pack: " .. packName)
+            warn("[Icon System] Failed to load pack: " .. packName)
         end
     end
     
     return nil
-end
-
-function IconModule:GetIcon(iconName, packName)
-    -- Use default pack if not specified
-    packName = packName or self.DefaultPack
-    
-    -- Check if it's already rbxassetid
-    if type(iconName) == "string" and iconName:match("^rbxassetid://") then
-        return iconName
-    end
-    
-    -- Load pack if needed
-    local pack = self:LoadPack(packName)
-    if pack and pack[iconName] then
-        return pack[iconName]
-    end
-    
-    -- Fallback to default pack if different
-    if packName ~= self.DefaultPack then
-        pack = self:LoadPack(self.DefaultPack)
-        if pack and pack[iconName] then
-            return pack[iconName]
-        end
-    end
-    
-    -- Return as-is if not found (might be custom icon)
-    return iconName
 end
 
 local Library = {
@@ -837,10 +813,42 @@ local Library = {
     MinimizeKey = Enum.KeyCode.LeftControl
 }
 
--- Add GetIcon method to Library
-function Library:GetIcon(iconName, packName)
-    return IconModule:GetIcon(iconName, packName)
+-- GetIcon Method
+function Library:GetIcon(Name, PackName)
+    -- Use default pack if not specified
+    PackName = PackName or DefaultIconPack
+    
+    -- Return as-is if already rbxassetid
+    if type(Name) == "string" and Name:match("^rbxassetid://") then
+        return Name
+    end
+    
+    -- Load icon pack
+    local pack = LoadIconPack(PackName)
+    if pack and pack[Name] then
+        return pack[Name]
+    end
+    
+    -- Fallback to default pack if different
+    if PackName ~= DefaultIconPack then
+        pack = LoadIconPack(DefaultIconPack)
+        if pack and pack[Name] then
+            return pack[Name]
+        end
+    end
+    
+    return nil
 end
+
+-- Set Default Icon Pack
+function Library:SetDefaultIconPack(PackName)
+    if IconURLs[PackName] then
+        DefaultIconPack = PackName
+    else
+        warn("[Icon System] Unknown pack: " .. PackName)
+    end
+end
+
 
 
 local function isMotor(value)
