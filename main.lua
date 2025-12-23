@@ -10,7 +10,7 @@ local httpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-print("Library Loaded V1.1a")
+print("Library Loaded V1.1D")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -754,6 +754,71 @@ local Themes = {
     }
 }
 
+-- Icon Module with Lazy Loading
+local IconModule = {
+    DefaultPack = "lucide",
+    LoadedPacks = {},
+    
+    Packs = {
+        lucide = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua",
+        solar = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/solar/dist/Icons.lua",
+        craft = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua",
+        geist = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua",
+        sfsymbols = "https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/sfsymbols/dist/Icons.lua"
+    }
+}
+
+function IconModule:LoadPack(packName)
+    -- Return cached pack if already loaded
+    if self.LoadedPacks[packName] then
+        return self.LoadedPacks[packName]
+    end
+    
+    -- Load pack from URL
+    local url = self.Packs[packName]
+    if url then
+        local success, pack = pcall(function()
+            return loadstring(game:HttpGet(url))()
+        end)
+        
+        if success and pack then
+            self.LoadedPacks[packName] = pack
+            return pack
+        else
+            warn("[IconModule] Failed to load pack: " .. packName)
+        end
+    end
+    
+    return nil
+end
+
+function IconModule:GetIcon(iconName, packName)
+    -- Use default pack if not specified
+    packName = packName or self.DefaultPack
+    
+    -- Check if it's already rbxassetid
+    if type(iconName) == "string" and iconName:match("^rbxassetid://") then
+        return iconName
+    end
+    
+    -- Load pack if needed
+    local pack = self:LoadPack(packName)
+    if pack and pack[iconName] then
+        return pack[iconName]
+    end
+    
+    -- Fallback to default pack if different
+    if packName ~= self.DefaultPack then
+        pack = self:LoadPack(self.DefaultPack)
+        if pack and pack[iconName] then
+            return pack[iconName]
+        end
+    end
+    
+    -- Return as-is if not found (might be custom icon)
+    return iconName
+end
+
 local Library = {
     Version = "1.0",
     OpenFrames = {},
@@ -771,6 +836,12 @@ local Library = {
     MinimizeKeybind = nil,
     MinimizeKey = Enum.KeyCode.LeftControl
 }
+
+-- Add GetIcon method to Library
+function Library:GetIcon(iconName, packName)
+    return IconModule:GetIcon(iconName, packName)
+end
+
 
 local function isMotor(value)
     local motorType = tostring(value):match("^Motor%((.+)%)$")
