@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3D")
+print("Library Loaded V1.3")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -4905,6 +4905,89 @@ Components.TitleBar =
             return Button
         end
 
+        -- Create TitleContent first so we can reference it later
+        TitleBar.TitleContent = New(
+            "Frame",
+            {
+                Name = "TitleContent",
+                Size = UDim2.new(1, -16, 1, 0),
+                Position = UDim2.new(0, 12, 0, 0),
+                BackgroundTransparency = 1
+            },
+            {
+                New(
+                    "UIListLayout",
+                    {
+                        Padding = UDim.new(0, 5),
+                        FillDirection = Enum.FillDirection.Horizontal,
+                        SortOrder = Enum.SortOrder.LayoutOrder,
+                        VerticalAlignment = Enum.VerticalAlignment.Center
+                    }
+                ),
+                Config.Icon and
+                    New(
+                        "ImageLabel",
+                        {
+                            Image = Config.Icon,
+                            Size = UDim2.fromOffset(20, 20),
+                            BackgroundTransparency = 1,
+                            LayoutOrder = 1,
+                            ThemeTag = {
+                                ImageColor3 = "Text"
+                            }
+                        }
+                    ) or
+                    nil,
+                New(
+                    "TextLabel",
+                    {
+                        RichText = true,
+                        Text = Config.Title,
+                        FontFace = Font.new(
+                            "rbxasset://fonts/families/GothamSSm.json",
+                            Enum.FontWeight.Regular,
+                            Enum.FontStyle.Normal
+                        ),
+                        TextSize = 12,
+                        TextXAlignment = "Left",
+                        TextYAlignment = "Center",
+                        Size = UDim2.fromScale(0, 1),
+                        AutomaticSize = Enum.AutomaticSize.X,
+                        BackgroundTransparency = 1,
+                        LayoutOrder = Config.Icon and 2 or 1,
+                        ThemeTag = {
+                            TextColor3 = "Text"
+                        }
+                    }
+                ),
+                Config.SubTitle and
+                    New(
+                        "TextLabel",
+                        {
+                            RichText = true,
+                            Text = Config.SubTitle,
+                            TextTransparency = 0.4,
+                            FontFace = Font.new(
+                                "rbxasset://fonts/families/GothamSSm.json",
+                                Enum.FontWeight.Regular,
+                                Enum.FontStyle.Normal
+                            ),
+                            TextSize = 12,
+                            TextXAlignment = "Left",
+                            TextYAlignment = "Center",
+                            Size = UDim2.fromScale(0, 1),
+                            AutomaticSize = Enum.AutomaticSize.X,
+                            BackgroundTransparency = 1,
+                            LayoutOrder = Config.Icon and 3 or 2,
+                            ThemeTag = {
+                                TextColor3 = "Text"
+                            }
+                        }
+                    ) or
+                    nil
+            }
+        )
+
         TitleBar.Frame =
             New(
             "Frame",
@@ -4914,87 +4997,7 @@ Components.TitleBar =
                 Parent = Config.Parent
             },
             {
-                TitleBar.TitleContent = New(
-                    "Frame",
-                    {
-                        Name = "TitleContent",
-                        Size = UDim2.new(1, -16, 1, 0),
-                        Position = UDim2.new(0, 12, 0, 0),
-                        BackgroundTransparency = 1
-                    },
-                    {
-                        New(
-                            "UIListLayout",
-                            {
-                                Padding = UDim.new(0, 5),
-                                FillDirection = Enum.FillDirection.Horizontal,
-                                SortOrder = Enum.SortOrder.LayoutOrder,
-                                VerticalAlignment = Enum.VerticalAlignment.Center
-                            }
-                        ),
-                        Config.Icon and
-                            New(
-                                "ImageLabel",
-                                {
-                                    Image = Config.Icon,
-                                    Size = UDim2.fromOffset(20, 20),
-                                    BackgroundTransparency = 1,
-                                    LayoutOrder = 1,
-                                    ThemeTag = {
-                                        ImageColor3 = "Text"
-                                    }
-                                }
-                            ) or
-                            nil,
-                        New(
-                            "TextLabel",
-                            {
-                                RichText = true,
-                                Text = Config.Title,
-                                FontFace = Font.new(
-                                    "rbxasset://fonts/families/GothamSSm.json",
-                                    Enum.FontWeight.Regular,
-                                    Enum.FontStyle.Normal
-                                ),
-                                TextSize = 12,
-                                TextXAlignment = "Left",
-                                TextYAlignment = "Center",
-                                Size = UDim2.fromScale(0, 1),
-                                AutomaticSize = Enum.AutomaticSize.X,
-                                BackgroundTransparency = 1,
-                                LayoutOrder = Config.Icon and 2 or 1,
-                                ThemeTag = {
-                                    TextColor3 = "Text"
-                                }
-                            }
-                        ),
-                        Config.SubTitle and
-                            New(
-                                "TextLabel",
-                                {
-                                    RichText = true,
-                                    Text = Config.SubTitle,
-                                    TextTransparency = 0.4,
-                                    FontFace = Font.new(
-                                        "rbxasset://fonts/families/GothamSSm.json",
-                                        Enum.FontWeight.Regular,
-                                        Enum.FontStyle.Normal
-                                    ),
-                                    TextSize = 12,
-                                    TextXAlignment = "Left",
-                                    TextYAlignment = "Center",
-                                    Size = UDim2.fromScale(0, 1),
-                                    AutomaticSize = Enum.AutomaticSize.X,
-                                    BackgroundTransparency = 1,
-                                    LayoutOrder = Config.Icon and 3 or 2,
-                                    ThemeTag = {
-                                        TextColor3 = "Text"
-                                    }
-                                }
-                            ) or
-                            nil
-                    }
-                ),
+                TitleBar.TitleContent,
                 New(
                     "Frame",
                     {
