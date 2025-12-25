@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3F")
+print("Library Loaded V1.3G")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -5756,7 +5756,8 @@ Components.Window =
             Window.UserInfoTop = Config.UserInfoTop
             local userInfoCornerRadius = Config.UserInfoCornerRadius or 8
             local userInfoPadding = 8
-            local separatorPadding = 12 -- padding between UserInfo and separator
+            local userInfoBottomPadding = 6 -- 2px less than top padding
+            local separatorPadding = 10 -- padding between UserInfo and separator
 
             local UserInfoSection =
                 New(
@@ -5766,7 +5767,7 @@ Components.Window =
                     BackgroundTransparency = 0.92,
                     Size = UDim2.new(0, Window.TabWidth - (userInfoPadding * 2), 0, userInfoHeight),
                     Position = Config.UserInfoTop and UDim2.fromOffset(userInfoPadding, userInfoPadding) or
-                        UDim2.new(0, userInfoPadding, 1, -(userInfoHeight + userInfoPadding)),
+                        UDim2.new(0, userInfoPadding, 1, -(userInfoHeight + userInfoBottomPadding)),
                     ZIndex = 15,
                     Parent = TabFrame,
                     ThemeTag = {
@@ -5801,7 +5802,7 @@ Components.Window =
                 separatorYPos = userInfoPadding + userInfoHeight + separatorPadding
             else
                 -- When bottom: separator is ABOVE the UserInfo
-                separatorYPos = -(userInfoHeight + userInfoPadding + separatorPadding)
+                separatorYPos = -(userInfoHeight + userInfoBottomPadding + separatorPadding)
             end
 
             New(
@@ -5908,16 +5909,18 @@ Components.Window =
                 TabFrame.Position = UDim2.new(0, 12, 0, 39)
                 TabFrame.Size = UDim2.new(0, Window.TabWidth, 1, -(31 + imageOffset + userInfoHeight))
                 local searchOffset = hasImage and (imageSize + 10 + topOffset) or topOffset
-                SearchFrame.Position = UDim2.new(0, 0, 0, userInfoHeight + 6 + searchOffset)
+                -- Add separatorPadding to ensure search bar is below the separator line
+                local userInfoTotalOffset = userInfoPadding + userInfoHeight + separatorPadding + 6
+                SearchFrame.Position = UDim2.new(0, 0, 0, userInfoTotalOffset + searchOffset)
                 if ImageFrame then
-                    ImageFrame.Position = UDim2.new(0.5, 0, 0, userInfoHeight + topOffset)
+                    ImageFrame.Position = UDim2.new(0.5, 0, 0, userInfoTotalOffset + topOffset)
                 end
                 local newTabHolderTop =
-                    userInfoHeight + 6 + (hasImage and (imageSize + 10 + topOffset) or topOffset) +
+                    userInfoTotalOffset + (hasImage and (imageSize + 10 + topOffset) or topOffset) +
                     (Window.ShowSearch and (searchHeight + 6) or 0)
                 Window.TabHolderTop = newTabHolderTop
                 Window.TabHolder.Position = UDim2.new(0, 0, 0, newTabHolderTop)
-                Window.TabHolder.Size = UDim2.new(1, 0, 1, -(newTabHolderTop + 6 + userInfoHeight))
+                Window.TabHolder.Size = UDim2.new(1, 0, 1, -(newTabHolderTop + 6))
                 if Window.UpdateTabHolderLayout then
                     Window:UpdateTabHolderLayout(newTabHolderTop)
                 end
