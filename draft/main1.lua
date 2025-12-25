@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3")
+print("Library Loaded V1.3E")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -5754,17 +5754,42 @@ Components.Window =
             local userInfoHeight = 56
             Window.UserInfoHeight = userInfoHeight
             Window.UserInfoTop = Config.UserInfoTop
+            local userInfoCornerRadius = Config.UserInfoCornerRadius or 8
+            local userInfoPadding = 8
+
             local UserInfoSection =
                 New(
                 "Frame",
                 {
                     Name = "UserInfoSection",
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(1, 0, 0, userInfoHeight),
-                    Position = Config.UserInfoTop and UDim2.fromOffset(0, 0) or
-                        UDim2.new(0, 0, 1, -(userInfoHeight + 2)),
+                    BackgroundTransparency = 0.92,
+                    Size = UDim2.new(1, -userInfoPadding * 2, 0, userInfoHeight),
+                    Position = Config.UserInfoTop and UDim2.fromOffset(userInfoPadding, userInfoPadding) or
+                        UDim2.new(0, userInfoPadding, 1, -(userInfoHeight + userInfoPadding)),
                     ZIndex = 15,
-                    Parent = TabFrame
+                    Parent = TabFrame,
+                    ThemeTag = {
+                        BackgroundColor3 = "Element"
+                    }
+                },
+                {
+                    New(
+                        "UICorner",
+                        {
+                            CornerRadius = UDim.new(0, userInfoCornerRadius)
+                        }
+                    ),
+                    New(
+                        "UIStroke",
+                        {
+                            Transparency = 0.5,
+                            Thickness = 1,
+                            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                            ThemeTag = {
+                                Color = "ElementBorder"
+                            }
+                        }
+                    )
                 }
             )
 
@@ -5785,6 +5810,7 @@ Components.Window =
             )
 
             local avatarSize = 28
+            local contentPadding = 10
             local Avatar =
                 New(
                 "ImageLabel",
@@ -5792,7 +5818,7 @@ Components.Window =
                     Name = "Avatar",
                     BackgroundTransparency = 1,
                     Size = UDim2.fromOffset(avatarSize, avatarSize),
-                    Position = UDim2.new(0, 0, 0.5, 0),
+                    Position = UDim2.new(0, contentPadding, 0.5, 0),
                     AnchorPoint = Vector2.new(0, 0.5),
                     Image = "rbxassetid://0",
                     Parent = UserInfoSection
@@ -5836,8 +5862,8 @@ Components.Window =
                     ),
                     TextSize = 13,
                     Text = titleText,
-                    Size = UDim2.new(1, -avatarSize - 12, 0.5, 0),
-                    Position = UDim2.new(0, avatarSize + 12, 0, -2),
+                    Size = UDim2.new(1, -avatarSize - contentPadding - 12, 0.5, 0),
+                    Position = UDim2.new(0, contentPadding + avatarSize + 8, 0, -2),
                     Parent = UserInfoSection,
                     ThemeTag = {TextColor3 = "Text"}
                 }
@@ -5859,8 +5885,8 @@ Components.Window =
                     TextTransparency = 0.2,
                     Text = subtitleText,
                     TextColor3 = parseColor(Config.UserInfoSubtitleColor),
-                    Size = UDim2.new(1, -avatarSize - 12, 0.5, 0),
-                    Position = UDim2.new(0, avatarSize + 12, 0.5, 2),
+                    Size = UDim2.new(1, -avatarSize - contentPadding - 12, 0.5, 0),
+                    Position = UDim2.new(0, contentPadding + avatarSize + 8, 0.5, 2),
                     Parent = UserInfoSection
                 }
             )
