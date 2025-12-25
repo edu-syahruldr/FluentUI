@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3")
+print("Library Loaded V1.3J")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -4306,7 +4306,7 @@ Components.Dialog =
             NewDialog.TintFrame:Destroy()
         end
 
-        function NewDialog:Button(Title, Callback, Destructive)
+        function NewDialog:Button(Title, Callback)
             NewDialog.Buttons = NewDialog.Buttons + 1
             Title = Title or "Button"
             Callback = Callback or function()
@@ -4314,15 +4314,6 @@ Components.Dialog =
 
             local Button = Components.Button("", NewDialog.ButtonHolder, true)
             Button.Title.Text = Title
-
-            -- Apply destructive (red) styling if specified
-            if Destructive then
-                Button.Frame.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-                -- Remove theme tag for background to keep red color
-                if Button.Frame:FindFirstChild("ThemeTag") then
-                    Button.Frame.ThemeTag = nil
-                end
-            end
 
             for _, Btn in next, NewDialog.ButtonHolder:GetChildren() do
                 if Btn:IsA("TextButton") then
@@ -5036,7 +5027,6 @@ Components.TitleBar =
                         Buttons = {
                             {
                                 Title = "Yes",
-                                Destructive = true,
                                 Callback = function()
                                     Library:Destroy()
                                 end
@@ -6537,7 +6527,7 @@ Components.Window =
             )
 
             for _, Button in next, Config.Buttons do
-                Dialog:Button(Button.Title, Button.Callback, Button.Destructive)
+                Dialog:Button(Button.Title, Button.Callback)
             end
 
             Dialog:Open()
