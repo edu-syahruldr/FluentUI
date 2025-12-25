@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3C")
+print("Library Loaded V1.3D")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -4914,9 +4914,10 @@ Components.TitleBar =
                 Parent = Config.Parent
             },
             {
-                New(
+                TitleBar.TitleContent = New(
                     "Frame",
                     {
+                        Name = "TitleContent",
                         Size = UDim2.new(1, -16, 1, 0),
                         Position = UDim2.new(0, 12, 0, 0),
                         BackgroundTransparency = 1
@@ -6443,6 +6444,110 @@ Components.Window =
 
         function Window:SelectTab(Tab)
             TabModule:SelectTab(Tab)
+        end
+
+        -- Tag counter for unique LayoutOrder
+        local TagCount = 0
+
+        function Window:AddTag(Config)
+            Config = Config or {}
+            assert(Config.Text, "Tag - Missing Text")
+
+            TagCount = TagCount + 1
+            local baseLayoutOrder = (Window.TitleBar.TitleContent:FindFirstChild("UIListLayout") and 10) or 10
+
+            local Tag = {
+                Type = "Tag"
+            }
+
+            -- Auto text color based on background luminance
+            local function GetContrastColor(bgColor)
+                local luminance = 0.299 * bgColor.R + 0.587 * bgColor.G + 0.114 * bgColor.B
+                return luminance > 0.5 and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(255, 255, 255)
+            end
+
+            local bgColor = Config.Color or Creator.GetThemeProperty("Accent")
+            local textColor = Config.TextColor or GetContrastColor(bgColor)
+            local cornerRadius = Config.CornerRadius or 4
+            local paddingV = (Config.Padding and Config.Padding[1]) or 3
+            local paddingH = (Config.Padding and Config.Padding[2]) or 6
+
+            local TagLabel = New(
+                "TextLabel",
+                {
+                    Name = "TagLabel",
+                    Text = Config.Text,
+                    TextColor3 = textColor,
+                    TextSize = 10,
+                    FontFace = Font.new(
+                        "rbxasset://fonts/families/GothamSSm.json",
+                        Enum.FontWeight.Medium,
+                        Enum.FontStyle.Normal
+                    ),
+                    TextXAlignment = Enum.TextXAlignment.Center,
+                    TextYAlignment = Enum.TextYAlignment.Center,
+                    BackgroundTransparency = 1,
+                    Size = UDim2.fromScale(1, 1),
+                    AutomaticSize = Enum.AutomaticSize.None
+                }
+            )
+
+            local TagFrame = New(
+                "Frame",
+                {
+                    Name = "Tag_" .. TagCount,
+                    BackgroundColor3 = bgColor,
+                    BackgroundTransparency = 0,
+                    Size = UDim2.fromOffset(0, 18),
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    LayoutOrder = baseLayoutOrder + TagCount,
+                    Parent = Window.TitleBar.TitleContent
+                },
+                {
+                    New(
+                        "UICorner",
+                        {
+                            CornerRadius = UDim.new(0, cornerRadius)
+                        }
+                    ),
+                    New(
+                        "UIPadding",
+                        {
+                            PaddingTop = UDim.new(0, paddingV),
+                            PaddingBottom = UDim.new(0, paddingV),
+                            PaddingLeft = UDim.new(0, paddingH),
+                            PaddingRight = UDim.new(0, paddingH)
+                        }
+                    ),
+                    TagLabel
+                }
+            )
+
+            Tag.Frame = TagFrame
+            Tag.Label = TagLabel
+
+            function Tag:SetText(newText)
+                TagLabel.Text = newText
+            end
+
+            function Tag:SetColor(newColor)
+                TagFrame.BackgroundColor3 = newColor
+                TagLabel.TextColor3 = GetContrastColor(newColor)
+            end
+
+            function Tag:SetTextColor(newColor)
+                TagLabel.TextColor3 = newColor
+            end
+
+            function Tag:SetVisible(visible)
+                TagFrame.Visible = visible
+            end
+
+            function Tag:Destroy()
+                TagFrame:Destroy()
+            end
+
+            return Tag
         end
 
         Creator.AddSignal(
