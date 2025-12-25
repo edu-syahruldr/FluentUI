@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3")
+print("Library Loaded V1.3J")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -5804,9 +5804,9 @@ Components.Window =
             Window.UserInfoHeight = userInfoHeight
             Window.UserInfoTop = Config.UserInfoTop
             local userInfoCornerRadius = Config.UserInfoCornerRadius or 8
-            local userInfoPadding = 8
-            local userInfoBottomPadding = 6 -- 2px less than top padding
-            local separatorPadding = userInfoPadding -- same padding as UserInfo to edge
+            local userInfoPadding = 6 -- same as bottom padding for consistency
+            local userInfoBottomPadding = 6
+            local separatorPadding = userInfoPadding
 
             local UserInfoSection =
                 New(
@@ -5855,14 +5855,15 @@ Components.Window =
                 separatorYPos = -(userInfoHeight + userInfoBottomPadding + separatorPadding)
             end
 
+            -- UserInfo separator full width from left edge to tablist stroke
             New(
                 "Frame",
                 {
                     Name = "UserInfoSeparator",
                     BackgroundTransparency = 0.5,
-                    Size = UDim2.new(1, 0, 0, 1),
-                    Position = Config.UserInfoTop and UDim2.fromOffset(0, separatorYPos) or
-                        UDim2.new(0, 0, 1, separatorYPos),
+                    Size = UDim2.new(0, Window.TabWidth + 6, 0, 1),
+                    Position = Config.UserInfoTop and UDim2.fromOffset(-12, separatorYPos) or
+                        UDim2.new(0, -12, 1, separatorYPos),
                     ZIndex = 15,
                     Parent = TabFrame,
                     ThemeTag = {
