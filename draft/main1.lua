@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3.5")
+print("Library Loaded V1.3")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -5804,7 +5804,7 @@ Components.Window =
             Window.UserInfoHeight = userInfoHeight
             Window.UserInfoTop = Config.UserInfoTop
             local userInfoCornerRadius = Config.UserInfoCornerRadius or 8
-            local userInfoPadding = 8 -- padding from edge (top when top=true, bottom when top=false)
+            local userInfoPadding = 12 -- padding from edge (top when top=true, bottom when top=false)
             local userInfoBottomPadding = 6
             local separatorPadding = 8 -- same as userInfoPadding for top=true case
 
