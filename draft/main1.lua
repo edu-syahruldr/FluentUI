@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3I")
+print("Library Loaded V1.3")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -5450,12 +5450,12 @@ Components.Window =
             {
                 Size = UDim2.new(1, 0, 0, 28),
                 Position = UDim2.new(0, 0, 0, searchOffset),
-                BackgroundTransparency = 0.7,
+                BackgroundTransparency = 1,
                 ZIndex = 10,
                 Visible = Window.ShowSearch,
                 BackgroundColor3 = Color3.fromRGB(20, 20, 20),
                 ThemeTag = {
-                    BackgroundColor3 = "Element"
+                    BackgroundColor3 = "Tab"
                 }
             },
             {
@@ -5514,6 +5514,44 @@ Components.Window =
             Frame = SearchFrame
         }
 
+        -- Search bar transparency motor (like tabs)
+        local SearchMotor, SearchSetTransparency = Creator.SpringMotor(1, SearchFrame, "BackgroundTransparency")
+        local SearchFocused = false
+
+        Creator.AddSignal(
+            SearchTextbox.Input.Focused,
+            function()
+                SearchFocused = true
+                SearchSetTransparency(0.89)
+            end
+        )
+
+        Creator.AddSignal(
+            SearchTextbox.Input.FocusLost,
+            function(enterPressed)
+                SearchFocused = false
+                SearchSetTransparency(1)
+            end
+        )
+
+        Creator.AddSignal(
+            SearchFrame.MouseEnter,
+            function()
+                if not SearchFocused then
+                    SearchSetTransparency(0.92)
+                end
+            end
+        )
+
+        Creator.AddSignal(
+            SearchFrame.MouseLeave,
+            function()
+                if not SearchFocused then
+                    SearchSetTransparency(1)
+                end
+            end
+        )
+
         Creator.AddSignal(
             SearchTextbox.Input:GetPropertyChangedSignal("Text"),
             function()
@@ -5522,11 +5560,6 @@ Components.Window =
             end
         )
 
-        Creator.AddSignal(
-            SearchTextbox.Input.FocusLost,
-            function(enterPressed)
-            end
-        )
 
         Creator.AddSignal(
             UserInputService.InputBegan,
@@ -5804,7 +5837,7 @@ Components.Window =
                             Thickness = 1,
                             ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
                             ThemeTag = {
-                                Color = "ElementBorder"
+                                Color = "TitleBarLine"
                             }
                         }
                     )
@@ -5827,7 +5860,7 @@ Components.Window =
                 {
                     Name = "UserInfoSeparator",
                     BackgroundTransparency = 0.5,
-                    Size = UDim2.new(0, Window.TabWidth, 0, 1),
+                    Size = UDim2.new(1, 0, 0, 1),
                     Position = Config.UserInfoTop and UDim2.fromOffset(0, separatorYPos) or
                         UDim2.new(0, 0, 1, separatorYPos),
                     ZIndex = 15,
@@ -9353,7 +9386,7 @@ ElementsTable.Divider = (function()
                         BackgroundTransparency = Transparency,
                         BorderSizePixel = 0,
                         ThemeTag = Color == nil and {
-                            BackgroundColor3 = "ElementBorder"
+                            BackgroundColor3 = "TitleBarLine"
                         } or nil
                     }
                 )
