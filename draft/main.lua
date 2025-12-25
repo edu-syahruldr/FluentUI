@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3A")
+print("Library Loaded V1.3B")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -9152,7 +9152,12 @@ ElementsTable.Divider = (function()
     Divider.__index = Divider
     Divider.__type = "Divider"
 
-    function Divider:New(Config)
+    function Divider:New(Idx, Config)
+        -- Idx is passed but not used for Divider
+        -- If only one param passed, treat it as Config
+        if type(Idx) == "table" and Config == nil then
+            Config = Idx
+        end
         Config = Config or {}
         local Height = Config.Height or 1
         local Padding = Config.Padding or 8
