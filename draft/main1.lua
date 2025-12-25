@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3JA")
+print("Library Loaded V1.3")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -6196,6 +6196,13 @@ Components.Window =
             end
         end
 
+        local DragVelocity = Vector2.new(0, 0)
+        local LastDragPos = Vector2.new(0, 0)
+        local LastDragTime = 0
+        local MomentumDamping = 0.92
+        local VelocitySamples = {}
+        local MaxSamples = 5
+
         Creator.AddSignal(
             Window.TitleBar.Frame.InputBegan,
             function(Input)
@@ -6206,6 +6213,10 @@ Components.Window =
                     Dragging = true
                     MousePos = Input.Position
                     StartPos = Window.Root.Position
+                    LastDragPos = Vector2.new(Input.Position.X, Input.Position.Y)
+                    LastDragTime = tick()
+                    VelocitySamples = {}
+                    DragVelocity = Vector2.new(0, 0)
 
                     if Window.Maximized then
                         StartPos =
@@ -6219,6 +6230,32 @@ Components.Window =
                         function()
                             if Input.UserInputState == Enum.UserInputState.End then
                                 Dragging = false
+                                
+                                -- Calculate average velocity from samples
+                                if #VelocitySamples > 0 then
+                                    local avgVel = Vector2.new(0, 0)
+                                    for _, sample in ipairs(VelocitySamples) do
+                                        avgVel = avgVel + sample
+                                    end
+                                    avgVel = avgVel / #VelocitySamples
+                                    
+                                    -- Apply momentum with Spring for smooth deceleration
+                                    local momentumMultiplier = 8
+                                    local targetX = Window.Position.X.Offset + (avgVel.X * momentumMultiplier)
+                                    local targetY = Window.Position.Y.Offset + (avgVel.Y * momentumMultiplier)
+                                    
+                                    -- Clamp to screen bounds
+                                    local vp = Camera.ViewportSize
+                                    local winSize = Window.Root.AbsoluteSize
+                                    targetX = math.clamp(targetX, 0, math.max(0, vp.X - winSize.X))
+                                    targetY = math.clamp(targetY, 0, math.max(0, vp.Y - winSize.Y))
+                                    
+                                    Window.Position = UDim2.fromOffset(targetX, targetY)
+                                    PosMotor:setGoal({
+                                        X = Spring(targetX, {frequency = 4, dampingRatio = 0.8}),
+                                        Y = Spring(targetY, {frequency = 4, dampingRatio = 0.8})
+                                    })
+                                end
                             end
                         end
                     )
@@ -6256,11 +6293,30 @@ Components.Window =
             function(Input)
                 if Input == DragInput and Dragging then
                     local Delta = Input.Position - MousePos
+                    local currentPos = Vector2.new(Input.Position.X, Input.Position.Y)
+                    local currentTime = tick()
+                    local dt = currentTime - LastDragTime
+                    
+                    -- Calculate instantaneous velocity
+                    if dt > 0 then
+                        local instantVel = (currentPos - LastDragPos) / dt
+                        -- Add to samples (keep only recent samples)
+                        table.insert(VelocitySamples, instantVel)
+                        if #VelocitySamples > MaxSamples then
+                            table.remove(VelocitySamples, 1)
+                        end
+                    end
+                    
+                    LastDragPos = currentPos
+                    LastDragTime = currentTime
+                    
                     Window.Position = UDim2.fromOffset(StartPos.X.Offset + Delta.X, StartPos.Y.Offset + Delta.Y)
+                    
+                    -- Use Spring during drag for smoother following
                     PosMotor:setGoal(
                         {
-                            X = Instant(Window.Position.X.Offset),
-                            Y = Instant(Window.Position.Y.Offset)
+                            X = Spring(Window.Position.X.Offset, {frequency = 12, dampingRatio = 1}),
+                            Y = Spring(Window.Position.Y.Offset, {frequency = 12, dampingRatio = 1})
                         }
                     )
 
