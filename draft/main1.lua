@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3J")
+print("Library Loaded V1.3JA")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -5773,6 +5773,46 @@ Components.Window =
             rootChildren
         )
 
+        -- Bouncy open animation
+        local targetPos = Window.Position
+        local vp = Camera.ViewportSize
+        
+        -- Create UIScale for bouncy effect
+        local openScale = Instance.new("UIScale")
+        openScale.Name = "OpenScale"
+        openScale.Scale = 1.1
+        openScale.Parent = Window.Root
+        
+        -- Start position below screen
+        Window.Root.Position = UDim2.new(0, targetPos.X.Offset, 0, vp.Y + 100)
+        
+        -- Phase 1: Rise up + shrink (0.25s)
+        task.defer(function()
+            local riseTween = TweenService:Create(Window.Root, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Position = targetPos
+            })
+            local shrinkTween = TweenService:Create(openScale, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Scale = 0.95
+            })
+            riseTween:Play()
+            shrinkTween:Play()
+            
+            -- Phase 2: Bounce back to normal (0.25s)
+            task.delay(0.3, function()
+                local bounceTween = TweenService:Create(openScale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                    Scale = 1.0
+                })
+                bounceTween:Play()
+                
+                -- Cleanup after animation
+                task.delay(0.3, function()
+                    if openScale and openScale.Parent then
+                        openScale:Destroy()
+                    end
+                end)
+            end)
+        end)
+
         CenterWindow()
         Creator.AddSignal(
             Camera:GetPropertyChangedSignal("ViewportSize"),
@@ -6031,7 +6071,12 @@ Components.Window =
         PosMotor:onStep(
             function(values)
                 task.wait(_G.CDDrag / 10)
-                Window.Root.Position = UDim2.new(0, values.X, 0, values.Y)
+                -- Screen clamping: keep window inside viewport
+                local vp = Camera.ViewportSize
+                local winSize = Window.Root and Window.Root.AbsoluteSize or Vector2.new(Window.Size.X.Offset, Window.Size.Y.Offset)
+                local clampedX = math.clamp(values.X, 0, math.max(0, vp.X - winSize.X))
+                local clampedY = math.clamp(values.Y, 0, math.max(0, vp.Y - winSize.Y))
+                Window.Root.Position = UDim2.new(0, clampedX, 0, clampedY)
             end
         )
 
@@ -6306,7 +6351,6 @@ Components.Window =
 
         function Window:Minimize()
             Window.Minimized = not Window.Minimized
-            Window.Root.Visible = not Window.Minimized
 
             for _, Option in next, Library.Options do
                 if Option and Option.Type == "Dropdown" and Option.Opened then
@@ -6317,6 +6361,68 @@ Components.Window =
                     )
                 end
             end
+
+            -- Animated minimize/restore
+            local vp = Camera.ViewportSize
+            if Window.Minimized then
+                -- Save current position before minimizing
+                Window.LastMinimizePos = {
+                    X = Window.Root.Position.X.Offset,
+                    Y = Window.Root.Position.Y.Offset
+                }
+                
+                -- Get or create UIScale for animation
+                local scale = Window.Root:FindFirstChild("MinimizeScale") or Instance.new("UIScale")
+                scale.Name = "MinimizeScale"
+                scale.Parent = Window.Root
+                scale.Scale = 1
+                
+                -- Drop down animation with scale
+                local dropTween = TweenService:Create(Window.Root, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                    Position = UDim2.new(0, Window.Root.Position.X.Offset, 0, vp.Y + 100)
+                })
+                local scaleTween = TweenService:Create(scale, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+                    Scale = 0.8
+                })
+                dropTween:Play()
+                scaleTween:Play()
+                
+                task.delay(0.35, function()
+                    Window.Root.Visible = false
+                    scale.Scale = 1
+                end)
+            else
+                -- Restore animation - rise up with bouncy effect
+                Window.Root.Visible = true
+                local lastPos = Window.LastMinimizePos or {X = (vp.X - Window.Size.X.Offset) / 2, Y = (vp.Y - Window.Size.Y.Offset) / 2}
+                
+                -- Start from below screen
+                Window.Root.Position = UDim2.new(0, lastPos.X, 0, vp.Y + 100)
+                
+                local scale = Window.Root:FindFirstChild("MinimizeScale") or Instance.new("UIScale")
+                scale.Name = "MinimizeScale"
+                scale.Parent = Window.Root
+                scale.Scale = 0.8
+                
+                -- Rise up animation with bouncy scale
+                local riseTween = TweenService:Create(Window.Root, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                    Position = UDim2.new(0, lastPos.X, 0, lastPos.Y)
+                })
+                local scaleTween = TweenService:Create(scale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                    Scale = 1
+                })
+                riseTween:Play()
+                scaleTween:Play()
+                
+                -- Update PosMotor to match
+                task.delay(0.4, function()
+                    PosMotor:setGoal({
+                        X = Flipper.Instant.new(lastPos.X),
+                        Y = Flipper.Instant.new(lastPos.Y)
+                    })
+                end)
+            end
+
             if not MinimizeNotif then
                 MinimizeNotif = true
                 local Key = Library.MinimizeKeybind and Library.MinimizeKeybind.Value or Library.MinimizeKey.Name
