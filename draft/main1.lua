@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3")
+print("Library Loaded V1.3KA")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -5804,11 +5804,14 @@ Components.Window =
                 })
                 bounceTween:Play()
                 
-                -- Cleanup after animation
+                -- Cleanup after animation and sync PosMotor
                 task.delay(0.3, function()
                     if openScale and openScale.Parent then
                         openScale:Destroy()
                     end
+                    -- Sync PosMotor to final position to prevent drag glitch
+                    Window.Position = targetPos
+                    Window.OpenAnimationDone = true
                 end)
             end)
         end)
@@ -6217,6 +6220,12 @@ Components.Window =
                     LastDragTime = tick()
                     VelocitySamples = {}
                     DragVelocity = Vector2.new(0, 0)
+                    
+                    -- Sync PosMotor on drag start to prevent glitch after open animation
+                    PosMotor:setGoal({
+                        X = Flipper.Instant.new(StartPos.X.Offset),
+                        Y = Flipper.Instant.new(StartPos.Y.Offset)
+                    })
 
                     if Window.Maximized then
                         StartPos =
@@ -6239,22 +6248,26 @@ Components.Window =
                                     end
                                     avgVel = avgVel / #VelocitySamples
                                     
-                                    -- Apply momentum with Spring for smooth deceleration
-                                    local momentumMultiplier = 8
-                                    local targetX = Window.Position.X.Offset + (avgVel.X * momentumMultiplier)
-                                    local targetY = Window.Position.Y.Offset + (avgVel.Y * momentumMultiplier)
-                                    
-                                    -- Clamp to screen bounds
-                                    local vp = Camera.ViewportSize
-                                    local winSize = Window.Root.AbsoluteSize
-                                    targetX = math.clamp(targetX, 0, math.max(0, vp.X - winSize.X))
-                                    targetY = math.clamp(targetY, 0, math.max(0, vp.Y - winSize.Y))
-                                    
-                                    Window.Position = UDim2.fromOffset(targetX, targetY)
-                                    PosMotor:setGoal({
-                                        X = Spring(targetX, {frequency = 4, dampingRatio = 0.8}),
-                                        Y = Spring(targetY, {frequency = 4, dampingRatio = 0.8})
-                                    })
+                                    -- Only apply momentum if velocity is significant
+                                    local velMagnitude = avgVel.Magnitude
+                                    if velMagnitude > 50 then
+                                        -- Apply momentum with Spring for smooth deceleration
+                                        local momentumMultiplier = 3
+                                        local targetX = Window.Position.X.Offset + (avgVel.X * momentumMultiplier)
+                                        local targetY = Window.Position.Y.Offset + (avgVel.Y * momentumMultiplier)
+                                        
+                                        -- Clamp to screen bounds
+                                        local vp = Camera.ViewportSize
+                                        local winSize = Window.Root.AbsoluteSize
+                                        targetX = math.clamp(targetX, 0, math.max(0, vp.X - winSize.X))
+                                        targetY = math.clamp(targetY, 0, math.max(0, vp.Y - winSize.Y))
+                                        
+                                        Window.Position = UDim2.fromOffset(targetX, targetY)
+                                        PosMotor:setGoal({
+                                            X = Spring(targetX, {frequency = 5, dampingRatio = 0.9}),
+                                            Y = Spring(targetY, {frequency = 5, dampingRatio = 0.9})
+                                        })
+                                    end
                                 end
                             end
                         end
