@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3A")
+print("Library Loaded V1.3")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -6244,14 +6244,62 @@ Components.Window =
                             if Input.UserInputState == Enum.UserInputState.End then
                                 Dragging = false
                                 
-                                -- Sync PosMotor to current position (no momentum)
                                 local currentX = Window.Root.Position.X.Offset
                                 local currentY = Window.Root.Position.Y.Offset
-                                Window.Position = UDim2.fromOffset(currentX, currentY)
-                                PosMotor:setGoal({
-                                    X = Flipper.Instant.new(currentX),
-                                    Y = Flipper.Instant.new(currentY)
-                                })
+                                
+                                -- Calculate gentle momentum from velocity samples
+                                if #VelocitySamples > 1 then
+                                    local avgVel = Vector2.new(0, 0)
+                                    for _, sample in ipairs(VelocitySamples) do
+                                        avgVel = avgVel + sample
+                                    end
+                                    avgVel = avgVel / #VelocitySamples
+                                    
+                                    local velMagnitude = avgVel.Magnitude
+                                    
+                                    -- Only apply very gentle momentum for medium-fast drags
+                                    if velMagnitude > 200 and velMagnitude < 3000 then
+                                        -- Very gentle multiplier
+                                        local momentumMultiplier = 0.08
+                                        local momentumX = avgVel.X * momentumMultiplier
+                                        local momentumY = avgVel.Y * momentumMultiplier
+                                        
+                                        -- Max momentum of 50 pixels in any direction
+                                        local maxMomentum = 50
+                                        momentumX = math.clamp(momentumX, -maxMomentum, maxMomentum)
+                                        momentumY = math.clamp(momentumY, -maxMomentum, maxMomentum)
+                                        
+                                        local targetX = currentX + momentumX
+                                        local targetY = currentY + momentumY
+                                        
+                                        -- Clamp with buffer from edges (20px from each edge)
+                                        local vp = Camera.ViewportSize
+                                        local winSize = Window.Root.AbsoluteSize
+                                        local edgeBuffer = 20
+                                        targetX = math.clamp(targetX, edgeBuffer, math.max(edgeBuffer, vp.X - winSize.X - edgeBuffer))
+                                        targetY = math.clamp(targetY, edgeBuffer, math.max(edgeBuffer, vp.Y - winSize.Y - edgeBuffer))
+                                        
+                                        Window.Position = UDim2.fromOffset(targetX, targetY)
+                                        PosMotor:setGoal({
+                                            X = Spring(targetX, {frequency = 8, dampingRatio = 1}),
+                                            Y = Spring(targetY, {frequency = 8, dampingRatio = 1})
+                                        })
+                                    else
+                                        -- No momentum, just sync position
+                                        Window.Position = UDim2.fromOffset(currentX, currentY)
+                                        PosMotor:setGoal({
+                                            X = Flipper.Instant.new(currentX),
+                                            Y = Flipper.Instant.new(currentY)
+                                        })
+                                    end
+                                else
+                                    -- No samples, just sync position
+                                    Window.Position = UDim2.fromOffset(currentX, currentY)
+                                    PosMotor:setGoal({
+                                        X = Flipper.Instant.new(currentX),
+                                        Y = Flipper.Instant.new(currentY)
+                                    })
+                                end
                             end
                         end
                     )
