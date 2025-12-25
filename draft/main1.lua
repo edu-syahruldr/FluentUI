@@ -8,7 +8,7 @@ local Camera = game:GetService("Workspace").CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 local httpService = game:GetService("HttpService")
 
-print("Library Loaded V1.3")
+print("Library Loaded V1.3I")
 local Mobile =
     not RunService:IsStudio() and
     table.find({Enum.Platform.IOS, Enum.Platform.Android}, UserInputService:GetPlatform()) ~= nil
@@ -3161,7 +3161,7 @@ Components.Tab =
             "TextButton",
             {
                 Size = UDim2.new(1, 0, 0, 34),
-                BackgroundTransparency = 0.92,
+                BackgroundTransparency = 1,
                 Parent = Parent,
                 ZIndex = 10,
                 ThemeTag = {
@@ -3298,30 +3298,30 @@ Components.Tab =
             end
         )
 
-        Tab.Motor, Tab.SetTransparency = Creator.SpringMotor(0.92, Tab.Frame, "BackgroundTransparency")
+        Tab.Motor, Tab.SetTransparency = Creator.SpringMotor(1, Tab.Frame, "BackgroundTransparency")
 
         Creator.AddSignal(
             Tab.Frame.MouseEnter,
             function()
-                Tab.SetTransparency(Tab.Selected and 0.85 or 0.87)
+                Tab.SetTransparency(Tab.Selected and 0.85 or 0.92)
             end
         )
         Creator.AddSignal(
             Tab.Frame.MouseLeave,
             function()
-                Tab.SetTransparency(Tab.Selected and 0.89 or 0.92)
+                Tab.SetTransparency(Tab.Selected and 0.89 or 1)
             end
         )
         Creator.AddSignal(
             Tab.Frame.MouseButton1Down,
             function()
-                Tab.SetTransparency(0.92)
+                Tab.SetTransparency(0.89)
             end
         )
         Creator.AddSignal(
             Tab.Frame.MouseButton1Up,
             function()
-                Tab.SetTransparency(Tab.Selected and 0.85 or 0.89)
+                Tab.SetTransparency(Tab.Selected and 0.85 or 0.92)
             end
         )
         Creator.AddSignal(
@@ -3884,7 +3884,7 @@ Components.Tab =
         TabModule.CurrentAnimationTab = Tab
 
         for _, TabObject in next, TabModule.Tabs do
-            TabObject.SetTransparency(0.92)
+            TabObject.SetTransparency(1)
             TabObject.Selected = false
         end
         TabModule.Tabs[Tab].SetTransparency(0.89)
@@ -5707,6 +5707,22 @@ Components.Window =
         table.insert(rootChildren, Window.ContainerCanvas)
         table.insert(rootChildren, TabFrame)
         table.insert(rootChildren, ResizeStartFrame)
+
+        -- Vertical separator between tabs list and content area
+        local TabContentSeparator = New(
+            "Frame",
+            {
+                Name = "TabContentSeparator",
+                Size = UDim2.new(0, 1, 1, -42),
+                Position = UDim2.fromOffset(Window.TabWidth + 18, 42),
+                BackgroundTransparency = 0.5,
+                ZIndex = 10,
+                ThemeTag = {
+                    BackgroundColor3 = "TitleBarLine"
+                }
+            }
+        )
+        table.insert(rootChildren, TabContentSeparator)
 
         Window.Root =
             New(
